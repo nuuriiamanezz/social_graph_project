@@ -1,0 +1,10 @@
+# secrets
+.env
+# big raw downloads (IMDb dumps are hundreds of MB)
+data/raw/
+*.tsv.gz
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+.vscode/

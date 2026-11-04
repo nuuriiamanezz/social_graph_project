@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hollywood: A Closed Club?</title>
+<meta name="description" content="DTU 02805 Social Graphs & Interactions final project: Hollywood's collaboration network, plots and ratings, 1980–2024.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#">THE CLOSED CLUB</a>
+  <ul>
+    <li><a href="#question">Question</a></li>
+    <li><a href="#data">Data</a></li>
+    <li><a href="#methods">Methods</a></li>
+    <li><a href="#schedule">Schedule</a></li>
+    <li><a href="https://github.com/nuuriiamanezz/social_graph_project">GitHub</a></li>
+  </ul>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="marquee">
+    <div class="bulbs top"></div><div class="bulbs bot"></div>
+    <div class="kicker">NOW SHOWING · 1980 – 2024</div>
+    <h1>Hollywood:<br>A Closed Club?</h1>
+  </div>
+  <p class="tagline">Forty years of who works with whom, what the stories are about, and whether audiences notice.</p>
+  <p class="meta">DTU 02805 Social Graphs &amp; Interactions · Final project · Fall 2026</p>
+</div></header>
+
+<div class="strip" aria-hidden="true"></div>
+
+<section id="question"><div class="wrap">
+  <div class="label">THE PITCH</div>
+  <h2>Research question</h2>
+  <p class="question">Over the last four decades, has Hollywood's collaboration network become more closed (more clustered, more repeat collaboration, more franchise-dominated), have its stories become more alike, and how does that relate to how audiences rate the films?</p>
+  <ul class="sub">
+    <li><span>01</span>Is the network more clustered and more hub-dominated in the 2010s than in the 1980s, beyond what a degree-preserving random network would give?</li>
+    <li><span>02</span>Are plots within a decade, and within a collaboration community, more similar to each other over time?</li>
+    <li><span>03</span>Do films made inside tight circles rate differently from films that bring together people from different communities?</li>
+  </ul>
+</div></section>
+
+<section id="data"><div class="wrap">
+  <div class="label">THE CAST</div>
+  <h2>Data</h2>
+  <p class="lead">A network built from IMDb's cast and crew records, joined by IMDb ID to plot text and country of origin from TMDB.</p>
+  <div class="stats">
+    <div class="stat"><b>—</b><small>Films</small><div class="pending">counting…</div></div>
+    <div class="stat"><b>—</b><small>People (nodes)</small><div class="pending">counting…</div></div>
+    <div class="stat"><b>—</b><small>Collaborations (edges)</small><div class="pending">counting…</div></div>
+    <div class="stat"><b>5</b><small>Decades compared</small></div>
+  </div>
+  <table class="src">
+    <tr><th>Source</th><th>What we take</th><th>Role</th></tr>
+    <tr><td>IMDb datasets<br><code>title.basics</code> <code>title.principals</code> <code>name.basics</code></td><td>Feature films, year, genres; director and top-4 billed actors</td><td>Network: people linked when they share a film</td></tr>
+    <tr><td>IMDb <code>title.ratings</code></td><td>Average rating and number of votes</td><td>Outcome variable; vote threshold sets scope</td></tr>
+    <tr><td>TMDB API</td><td>Plot overview, keywords, origin country</td><td>Text; defines "Hollywood" as US origin</td></tr>
+  </table>
+  <p style="margin-top:18px;color:var(--muted);font-size:.92rem"><b style="color:var(--cream)">Filter:</b> US feature films, 1980–2024, at least 25,000 IMDb votes. Records are joined on IMDb IDs, and a sample of matches is checked by hand.</p>
+</div></section>
+
+<section id="methods"><div class="wrap">
+  <div class="label">THE SCRIPT</div>
+  <h2>Methods, in three acts</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="act">ACT I</div>
+      <h3>The network closes</h3>
+      <ul>
+        <li>One collaboration network per decade</li>
+        <li>Clustering, degree distribution, hub share</li>
+        <li>Repeat-collaboration rate</li>
+        <li>Louvain communities and modularity</li>
+      </ul>
+      <div class="what">Check: the same measures on degree-preserving randomized networks.</div>
+    </div>
+    <div class="card">
+      <div class="act">ACT II</div>
+      <h3>The stories converge</h3>
+      <ul>
+        <li>TF-IDF on TMDB plot overviews</li>
+        <li>Average plot similarity per decade and per community</li>
+        <li>Top words that characterize each community</li>
+        <li>Sentiment of plots over time</li>
+      </ul>
+      <div class="what">Check: hand-labelled sample of film pairs, similar or not, against the cosine score.</div>
+    </div>
+    <div class="card">
+      <div class="act">ACT III</div>
+      <h3>Do audiences notice?</h3>
+      <ul>
+        <li>Rating vs. how embedded a film's people are</li>
+        <li>Bridge films (cross-community) vs. in-group films</li>
+        <li>Betweenness of directors vs. their films' ratings</li>
+      </ul>
+      <div class="what">Check: shuffle ratings across films and compare to the observed effect.</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="cutting"><div class="wrap">
+  <div class="label">THE CUTTING ROOM</div>
+  <h2>Backup ideas</h2>
+  <div class="cutting">
+    <div class="card"><h3>Who you know</h3><p>Does a person's network position, bridging communities in particular, predict the ratings of their films?</p></div>
+    <div class="card"><h3>Gender on screen</h3><p>Are women less central in the network, and are their characters described differently in plot text?</p></div>
+  </div>
+</div></section>
+
+<section id="schedule"><div class="wrap">
+  <div class="label">THE CALL SHEET</div>
+  <h2>Schedule</h2>
+  <ul class="timeline">
+    <li class="now"><div class="d">WED 4 NOV</div>Dataset locked, question drafted, repo and site set up.</li>
+    <li><div class="d">WED 11 NOV</div>IMDb filtered, TMDB plots fetched, decade networks built.</li>
+    <li><div class="d">WED 18 NOV</div>Null models, communities, text similarity: core results.</li>
+    <li><div class="d">WED 25 NOV</div>Three final figures; full paper draft in the PNAS template.</li>
+    <li><div class="d">FRI 27 NOV · 23:59</div>Hand in paper, slides and reflection on DTU Learn.</li>
+    <li><div class="d">WED 2 DEC</div>Premiere: 3 slides, 3 minutes, then questions.</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap credits">
+  <div class="kicker">STARRING</div>
+  <div class="role">&nbsp;</div>
+  <div class="name">Nuria Máñez Molina</div><div class="id">s234523</div>
+  <div class="role">&nbsp;</div>
+  <div class="name">Nour Marak</div><div class="id">s234700</div>
+  <div class="role">&nbsp;</div>
+  <div class="name">Marah Osama Marak</div><div class="id">s182946</div>
+  <p class="fine">Data: IMDb non-commercial datasets (personal &amp; non-commercial use) and TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+</div></footer>
+
+</body>
+</html>
