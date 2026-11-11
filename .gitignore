@@ -8,3 +8,5 @@ data/raw/
 .ipynb_checkpoints/
 __pycache__/
 .vscode/
+# regenerable intermediate files
+data/interim/
