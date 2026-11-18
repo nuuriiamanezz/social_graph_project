@@ -97,3 +97,49 @@ footer{padding:80px 0 60px;text-align:center;border-top:1px solid var(--line);ba
   section{padding:56px 0}
 }
 @media (prefers-reduced-motion:reduce){.marquee .bulbs{animation:none}}
+
+/* ---------- results ("the reviews") ---------- */
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin:6px 0 10px}
+.verdict .card .score{font-family:var(--display);font-size:1.05rem;letter-spacing:.2em;color:var(--gold-2);margin-top:4px}
+.verdict .card p{font-size:.95rem;margin-top:.5em}
+.act-block{margin-top:56px}
+.act-block h3{font-size:1.9rem}
+.act-block .act{font-family:var(--display);letter-spacing:.3em;color:var(--red);font-size:.9rem}
+.finding{list-style:none;display:grid;gap:10px;margin:14px 0 20px;max-width:860px}
+.finding li{padding-left:28px;position:relative;font-size:.98rem}
+.finding li::before{content:"★";position:absolute;left:0;color:var(--gold)}
+.finding li.no::before{content:"✕";color:var(--muted)}
+.finding b{color:var(--gold-2);font-weight:600}
+figure.fig{margin:18px 0 6px;background:#f7f3ea;border-radius:6px;padding:10px;border:1px solid var(--line)}
+figure.fig img{width:100%;display:block}
+figure.fig figcaption{color:#5b5346;font-size:.82rem;padding:8px 4px 2px}
+.caveat{font-size:.88rem;color:var(--muted);border-left:2px solid var(--red);padding:4px 0 4px 14px;margin-top:14px;max-width:860px}
+
+/* ---------- network explorer ---------- */
+.explorer{margin-top:22px;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.ex-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.ex-dec{display:flex;gap:4px}
+.ex-dec button{font-family:var(--display);letter-spacing:.12em;font-size:1rem;background:transparent;color:var(--muted);
+  border:1px solid var(--line);border-radius:4px;padding:4px 12px;cursor:pointer}
+.ex-dec button.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.ex-bar input[type=search]{flex:1;min-width:180px;background:var(--ink);color:var(--cream);border:1px solid var(--line);
+  border-radius:4px;padding:6px 10px;font:inherit;font-size:.9rem}
+.ex-bar label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center;cursor:pointer}
+.ex-stage{position:relative;height:620px;background:radial-gradient(ellipse at center,#1a1712,#0c0b0a 75%)}
+.ex-stage svg{width:100%;height:100%;display:block;cursor:grab}
+.ex-stage svg:active{cursor:grabbing}
+.ex-info{position:absolute;left:14px;top:12px;font-size:.8rem;color:var(--muted);pointer-events:none}
+.ex-info b{color:var(--gold-2);font-family:var(--display);letter-spacing:.08em;font-size:1.25rem;font-weight:400}
+.ex-tip{position:absolute;pointer-events:none;background:rgba(12,11,10,.95);border:1px solid var(--gold);border-radius:5px;
+  padding:9px 12px;font-size:.8rem;max-width:280px;opacity:0;transition:opacity .12s}
+.ex-tip h4{font-family:var(--serif);font-size:1.05rem;color:var(--cream);margin-bottom:2px}
+.ex-tip .m{color:var(--gold);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+.ex-tip ul{margin:6px 0 0 1em;color:var(--cream)}
+.ex-legend{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--line)}
+.ex-legend button{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--line);border-radius:20px;
+  color:var(--cream);font:inherit;font-size:.78rem;padding:3px 10px 3px 6px;cursor:pointer}
+.ex-legend button i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.ex-legend button.on{border-color:var(--gold);background:rgba(217,169,74,.12)}
+.ex-help{font-size:.78rem;color:var(--muted);padding:0 14px 12px}
+.ex-stage .fallback{width:100%;height:100%;object-fit:contain;background:#f7f3ea}
+@media (max-width:640px){.ex-stage{height:440px}}
