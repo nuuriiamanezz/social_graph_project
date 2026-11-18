@@ -294,7 +294,84 @@
     S.ctl.append("div").attr("class", "ch-hint").html("Left: click a film type to hide it. Middle: switch the model; red = permutation p &lt; 0.05, grey bar = shuffled ratings ± 2 sd. Right: hover a director; click a decade to hide it" + (nZero ? ` (${nZero} directors with betweenness 0 cannot be shown on the log axis)` : "") + ".");
   }
 
-  const CH = { closure, dists, plots, ratings };
+
+  // ---------- Bonus: gender on screen ----------
+  function gender(el, D) {
+    if (!D.gender) throw new Error("no gender data");
+    const S = shell(el, 4, "g4"), rows = D.gender, by = new Map(rows.map((r) => [r.decade, r]));
+    let club = "repeat";
+    // A: women on screen
+    const A = panel(S, "Women on screen"); A.x = decX(A);
+    const ya = d3.scaleLinear().domain([0, 0.55]).range([A.h, 0]);
+    axes(A, A.x, ya, { yl: "share", yf: d3.format(".0%"), xf: (d) => d + "s" });
+    A.g.append("line").attr("class", "ch-ref").attr("x1", 0).attr("x2", A.w).attr("y1", ya(0.5)).attr("y2", ya(0.5)).style("stroke-dasharray", "4 4");
+    const LA = [["women_credits", "cast credits held by women", C.red, ""], ["women_leads", "lead roles (first-billed)", C.gold, ""],
+                ["she_share", "she/her among plot pronouns", C.pink, "dash"], ["she_share_mled", "… in plots of male-led films", C.pink, "dash"]];
+    LA.forEach(([k, , c, d], i) => {
+      A.g.append("path").datum(rows).attr("class", "ch-line " + d).attr("stroke", c).style("opacity", i === 3 ? 0.55 : 1)
+        .attr("d", d3.line().x((r) => A.x(r.decade)).y((r) => ya(r[k])));
+      A.g.selectAll(".a" + i).data(rows).join("circle").attr("r", 3.5).attr("fill", c).style("opacity", i === 3 ? 0.55 : 1)
+        .attr("cx", (r) => A.x(r.decade)).attr("cy", (r) => ya(r[k]));
+    });
+    // B: inside the closed club (switchable measure)
+    const B = panel(S, "Inside the closed club?"); B.x = decX(B);
+    const gB = B.g.append("g");
+    const drawB = () => {
+      gB.html("");
+      const [kw, km, yl] = club === "repeat" ? ["repeat_w", "repeat_m", "share of their ties on 2+ films"] : ["next_w", "next_m", "share still working next decade"];
+      const rr = rows.filter((r) => r[kw] != null);
+      const yb = d3.scaleLinear().domain([0, d3.max(rr, (r) => Math.max(r[kw], r[km])) * 1.15]).range([B.h, 0]);
+      const P = { g: gB, w: B.w, h: B.h };
+      axes(P, B.x, yb, { yl, yf: d3.format(".0%"), xf: (d) => d + "s" });
+      [[km, C.blue, "men"], [kw, C.red, "women"]].forEach(([k, c]) => {
+        gB.append("path").datum(rr).attr("class", "ch-line").attr("stroke", c).attr("d", d3.line().x((r) => B.x(r.decade)).y((r) => yb(r[k])));
+        gB.selectAll(null).data(rr).join("circle").attr("r", 4).attr("fill", c).attr("cx", (r) => B.x(r.decade)).attr("cy", (r) => yb(r[k]));
+      });
+      B.guide = gB.append("line").attr("class", "ch-guide").attr("y1", 0).attr("y2", B.h).style("opacity", 0);
+    };
+    drawB();
+    // C: centrality gap
+    const Cp = panel(S, "Are women less central?"); Cp.x = decX(Cp);
+    const lo = d3.min(rows, (r) => Math.min(r.bet_gap, -2 * r.bet_gap_null_sd)), hi = d3.max(rows, (r) => Math.max(r.bet_gap, 2 * r.bet_gap_null_sd));
+    const yc = d3.scaleLinear().domain([lo * 1.15, hi * 1.3]).range([Cp.h, 0]);
+    axes(Cp, Cp.x, yc, { yl: "women − men, betweenness percentile", yf: d3.format("+.2f"), xf: (d) => d + "s" });
+    Cp.g.append("line").attr("class", "ch-ref").attr("x1", 0).attr("x2", Cp.w).attr("y1", yc(0)).attr("y2", yc(0));
+    [["bet_gap", C.red], ["bet_gap_ctrl", C.green]].forEach(([k, c]) => {
+      Cp.g.append("path").datum(rows).attr("fill", c).attr("opacity", 0.12)
+        .attr("d", d3.area().x((r) => Cp.x(r.decade)).y0((r) => yc(-2 * r[k + "_null_sd"])).y1((r) => yc(2 * r[k + "_null_sd"])));
+      Cp.g.append("path").datum(rows).attr("class", "ch-line").attr("stroke", c).attr("d", d3.line().x((r) => Cp.x(r.decade)).y((r) => yc(r[k])));
+      Cp.g.selectAll(null).data(rows).join("circle").attr("r", (r) => (r[k + "_p"] < 0.05 ? 6 : 4)).attr("fill", c)
+        .attr("stroke", (r) => (r[k + "_p"] < 0.05 ? "#fff" : "none")).attr("cx", (r) => Cp.x(r.decade)).attr("cy", (r) => yc(r[k]));
+    });
+    // D: words
+    const Wp = panel(S, "Plot words by lead");
+    const Ws = D.gender_words.slice().sort((a, b) => b.z - a.z), W = [...Ws.slice(0, 10), ...Ws.slice(-10)];
+    const xw = d3.scaleLinear().domain(d3.extent([0, ...W.map((w) => w.z)])).nice().range([0, Wp.w]);
+    const yw = d3.scaleBand().domain(W.map((w) => w.word)).range([0, Wp.h]).padding(0.15);
+    Wp.g.append("g").attr("class", "ch-ax").attr("transform", `translate(0,${Wp.h})`).call(d3.axisBottom(xw).ticks(5));
+    Wp.g.append("text").attr("class", "ch-lab").attr("x", Wp.w / 2).attr("y", Wp.h + 32).attr("text-anchor", "middle").text("◀ male-led · log-odds z · female-led ▶");
+    const bars = Wp.g.selectAll("rect").data(W).join("rect").attr("y", (w) => yw(w.word)).attr("height", yw.bandwidth())
+      .attr("x", (w) => xw(Math.min(0, w.z))).attr("width", (w) => Math.abs(xw(w.z) - xw(0))).attr("fill", (w) => (w.z > 0 ? C.red : C.blue)).attr("opacity", 0.85)
+      .on("mousemove", function (e, w) { d3.select(this).attr("opacity", 1); showTip(S, `<b>${w.word}</b><br>in ${w.n_female_led} female-led and ${w.n_male_led} male-led plots<br><span class="m">z = ${d3.format("+.1f")(w.z)} (${w.z > 0 ? "typical of female-led" : "typical of male-led"} films)</span>`, e); })
+      .on("mouseleave", function () { d3.select(this).attr("opacity", 0.85); hideTip(S); });
+    Wp.g.selectAll(".wl").data(W).join("text").attr("class", "ch-lab").attr("font-size", 9.5).style("fill", "var(--cream)")
+      .attr("x", (w) => (w.z > 0 ? xw(0) - 4 : xw(0) + 4)).attr("text-anchor", (w) => (w.z > 0 ? "end" : "start"))
+      .attr("y", (w) => yw(w.word) + yw.bandwidth() / 2 + 3).text((w) => w.word).style("pointer-events", "none");
+    Wp.g.append("line").attr("class", "ch-ref").attr("x1", xw(0)).attr("x2", xw(0)).attr("y1", 0).attr("y2", Wp.h);
+    // linked decade hover over A, B, C
+    decHover(S, [A, B, Cp], (d, Q) => {
+      const r = by.get(d);
+      if (Q === A) return `<b>${d}s</b><br>women: ${pct(r.women_credits)} of cast credits, ${pct(r.women_leads)} of leads<br>she/her: ${pct(r.she_share)} of plot pronouns<br><span class="m">… ${pct(r.she_share_mled)} in male-led plots, ${pct(r.she_share_fled)} in female-led</span>`;
+      if (Q === B) return `<b>${d}s</b><br>ties that repeat: women ${pct(r.repeat_w)}, men ${pct(r.repeat_m)}<br>back next decade: ${r.next_w == null ? "—" : `women ${pct(r.next_w)}, men ${pct(r.next_m)}`}`;
+      return `<b>${d}s</b><br>raw gap: ${d3.format("+.3f")(r.bet_gap)} <span class="m">(p = ${f2(r.bet_gap_p)})</span><br>same number of films: ${d3.format("+.3f")(r.bet_gap_ctrl)} <span class="m">(p = ${f2(r.bet_gap_ctrl_p)})</span>`;
+    });
+    buttons(S, "Closed club", [["repeat", "repeat ties"], ["next", "back next decade"]], club, (v) => { club = v; drawB(); });
+    S.ctl.append("div").attr("class", "ch-key").html(
+      `<span><i style="background:${C.red}"></i>women</span><span><i style="background:${C.blue}"></i>men</span><span><i style="background:${C.gold}"></i>lead roles</span>` +
+      `<span><i style="background:${C.pink}"></i>she/her in plots</span><span><i style="background:${C.green}"></i>gap at equal number of films</span><span>shaded = gender shuffled ± 2 sd · big dot = p &lt; 0.05</span>`);
+  }
+
+  const CH = { closure, dists, plots, ratings, gender };
   let DATA;
   const render = () => holders.forEach((h) => { try { CH[h.dataset.chart](h, DATA); } catch (err) { console.error(err); h.innerHTML = `<img src="${h.dataset.fallback}" alt="" style="width:100%">`; } });
   fetch("assets/data/charts.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })

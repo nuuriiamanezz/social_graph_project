@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=7">
+<link rel="stylesheet" href="assets/css/style.css?v=8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
 <body>
@@ -194,6 +194,22 @@
     <figure class="fig live"><div class="chart" data-chart="ratings" data-fallback="assets/img/ratings.png"><noscript><img src="assets/img/ratings.png" alt="Act III figure"></noscript></div>
       <figcaption>Left: mean rating with 95% bootstrap CI. Middle: model coefficients with 95% CI; grey = ratings shuffled within decade, ± 2 sd (1000 runs). Right: one dot per director, size = number of films. <a href="assets/img/ratings.png">Static figure (PNG)</a></figcaption></figure>
   </div>
+
+  <!-- BONUS -->
+  <div class="act-block" id="gender">
+    <div class="act">BONUS REEL</div>
+    <h3>Gender on screen</h3>
+    <ul class="finding">
+      <li><b>Thirty years without change:</b> women hold 30–33% of cast credits and 16–21% of lead roles from the 1980s to the 2010s. The 2020s jump to 42% and 38% (2020–2024 only).</li>
+      <li class="no"><b>Less central, but only because they get fewer films.</b> Women sit lower in the network in the 2010s and 2020s (beyond shuffled gender), but compared with men who made the same number of films the gap disappears in every decade.</li>
+      <li><b>Less part of the closed club:</b> in the 2010s, 3.7% of women's ties repeat against 5.7% of men's, and women are less likely to still be working the next decade (21% vs. 27% in the 1980s, 41% vs. 43% by the 2010s).</li>
+      <li><b>One woman among men:</b> woman–woman ties are rarer than random casting would give (7% vs. 11% in the 1980s), so casts mix genders less than chance.</li>
+      <li><b>Plots talk about women less, and differently:</b> only about a fifth of plot pronouns are she/her; in male-led films it fell from 15% to 5%. Female-led plots are about family and relationships (<i>mother, daughter, sisters, husband</i>) and horror; male-led ones about jobs and missions (<i>agent, police, rescue, hero</i>), and their most typical word is <i>wife</i>.</li>
+    </ul>
+    <figure class="fig live"><div class="chart" data-chart="gender" data-fallback="assets/img/gender.png"><noscript><img src="assets/img/gender.png" alt="Gender on screen figure"></noscript></div>
+      <figcaption>Hover a decade for its numbers, switch the closed-club measure, hover a word for its counts. <a href="assets/img/gender.png">Static figure (PNG)</a></figcaption></figure>
+    <p class="caveat">Gender is IMDb's actor/actress label: binary, so it cannot represent non-binary performers, and it covers the cast only (IMDb has no gender for directors). Female-led films rate a little lower, but we did not control for genre, so we do not report that as a finding.</p>
+  </div>
 </div></section>
 
 <section id="cutting"><div class="wrap">
@@ -201,7 +217,6 @@
   <h2>Backup ideas</h2>
   <div class="cutting">
     <div class="card"><h3>Who you know</h3><p>Does a person's network position, bridging communities in particular, predict the ratings of their films?</p></div>
-    <div class="card"><h3>Gender on screen</h3><p>Are women less central in the network, and are their characters described differently in plot text?</p></div>
   </div>
 </div></section>
 
@@ -230,7 +245,7 @@
 </div></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script src="assets/js/explorer.js?v=7"></script>
-<script src="assets/js/charts.js?v=7"></script>
+<script src="assets/js/explorer.js?v=8"></script>
+<script src="assets/js/charts.js?v=8"></script>
 </body>
 </html>
