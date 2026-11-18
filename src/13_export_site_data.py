@@ -4,8 +4,8 @@ Per decade: largest connected component, same layout recipe as step 12,
 nodes: name n, community c (8 largest, else -1), degree d, x/y, role r (a/d),
 f = indices into that decade's film list;
 edges with weight. Also prints the headline counts used on the site.
-Needs results/communities.tsv (step 8).  Run from project/:
-  python3 src/13_export_site_data.py
+Needs results/communities.tsv (step 8).  Run from project/, then step 15 for the layout the site uses:
+  python3 src/13_export_site_data.py && node src/15_layout_network.mjs
 """
 import itertools, json, os
 import numpy as np, pandas as pd, networkx as nx

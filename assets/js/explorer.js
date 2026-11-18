@@ -12,6 +12,7 @@
   const PAL = ["#ff5a5f", "#4fd18b", "#5b8cff", "#ffa24c", "#c77dff", "#4dd9f0", "#ff6fd8", "#e8c46a"];
   const OTHER = "#4a443b";
   const info = stage.querySelector(".ex-info"), tip = stage.querySelector(".ex-tip");
+  const card = document.createElement("div"); card.className = "ex-card"; stage.appendChild(card);
   const search = document.getElementById("ex-search"), names = document.getElementById("ex-names");
   const repeatBox = document.getElementById("ex-repeat");
   const legend = root.querySelector(".ex-legend"), decBar = root.querySelector(".ex-dec");
@@ -25,19 +26,24 @@
     g.attr("transform", e.transform);
     gN.selectAll("circle").attr("r", (n) => n.rad / Math.sqrt(k));
     gE.selectAll("line").attr("stroke-width", (e) => (e[2] > 1 ? 1.4 : 0.5) / Math.sqrt(k));
-    gL.selectAll("text").attr("font-size", 12 / k).attr("stroke-width", 3 / k);
+    gL.selectAll("text").attr("font-size", 13.5 / k).attr("stroke-width", 4 / k);
     gS.selectAll("text").attr("font-size", 13 / k).attr("stroke-width", 3 / k).attr("x", (n) => n.px + 8 / k).attr("y", (n) => n.py + 4 / k);
   });
-  svg.call(zoom).on("click", (e) => { if (e.target === svg.node()) { setSel(null); } });
+  svg.call(zoom).on("click", (e) => { if (e.target === svg.node()) { setSel(null); if (comm !== null) pickComm(comm); } });
 
   const color = (n) => (n.c >= 0 ? PAL[n.c] : OTHER);
   const fmt = d3.format(",");
 
+  // Positions come precomputed from src/15_layout_network.mjs (community-aware force layout).
+  const layout = (dec) => data.decades[dec].nodes.map((n) => [n.lx, n.ly]);
+
   function draw() {
     D = data.decades[dec];
-    const W = stage.clientWidth, H = stage.clientHeight, s = Math.min(W, H) - 50;
-    const ox = (W - s) / 2, oy = (H - s) / 2;
-    D.nodes.forEach((n, i) => { n.i = i; n.px = ox + n.x * s; n.py = oy + (1 - n.y) * s; n.rad = 2 + Math.sqrt(n.d) * 0.9; });
+    const P = layout(dec), W = stage.clientWidth, H = stage.clientHeight, pad = 34;
+    const [x0, x1] = d3.extent(P, (p) => p[0]), [y0, y1] = d3.extent(P, (p) => p[1]);
+    const s = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad - 30) / (y1 - y0));
+    const ox = (W - s * (x1 - x0)) / 2 - s * x0, oy = (H - s * (y1 - y0)) / 2 - s * y0 + 12;
+    D.nodes.forEach((n, i) => { n.i = i; n.px = ox + s * P[i][0]; n.py = oy + s * P[i][1]; n.rad = 2 + Math.sqrt(n.d) * 0.9; });
     adj = D.nodes.map(() => new Set());
     D.edges.forEach(([a, b]) => { adj[a].add(b); adj[b].add(a); });
 
@@ -56,26 +62,27 @@
       .on("mouseleave", () => { tip.style.opacity = 0; })
       .on("click", (e, n) => { e.stopPropagation(); setSel(sel === n.i ? null : n.i); });
 
-    // community labels at each community's most-credited member
+    // community labels at each community's centre, named after its most-credited member
     const lab = D.communities.filter((c) => c.label).map((c) => {
-      const n = D.nodes.find((m) => m.n === c.label && m.c === c.id);
-      return n ? { t: c.label, x: n.px, y: n.py, c: c.id } : null;
-    }).filter(Boolean);
-    lab.forEach((l) => { l.w = l.t.length * 7; l.ly = l.y - 6; });
+      const m = D.nodes.filter((n) => n.c === c.id);
+      return { t: c.label, x: d3.median(m, (n) => n.px), y: d3.median(m, (n) => n.py), c: c.id };
+    });
+    lab.forEach((l) => { l.w = l.t.length * 8; l.ly = l.y; l.x -= l.w / 2; });
     for (let it = 0; it < 60; it++) {  // push overlapping labels apart vertically
       let moved = false;
       lab.forEach((a) => lab.forEach((b) => {
-        if (a === b || Math.abs(a.x - b.x) > (a.x < b.x ? a.w : b.w) || Math.abs(a.ly - b.ly) >= 15) return;
-        const d = (15 - Math.abs(a.ly - b.ly)) / 2 + 0.5, up = a.ly <= b.ly ? a : b, dn = up === a ? b : a;
+        if (a === b || Math.abs(a.x - b.x) > (a.x < b.x ? a.w : b.w) || Math.abs(a.ly - b.ly) >= 17) return;
+        const d = (17 - Math.abs(a.ly - b.ly)) / 2 + 0.5, up = a.ly <= b.ly ? a : b, dn = up === a ? b : a;
         up.ly -= d; dn.ly += d; moved = true;
       }));
       if (!moved) break;
     }
     gL.selectAll("text").data(lab, (l) => l.t).join("text")
-      .attr("x", (l) => l.x + 6).attr("y", (l) => l.ly).text((l) => l.t)
-      .attr("fill", (l) => PAL[l.c]).attr("font-family", "Inter, sans-serif").attr("font-weight", 600)
-      .attr("font-size", 12 / k).attr("paint-order", "stroke").attr("stroke", "#0c0b0a").attr("stroke-width", 3 / k)
-      .style("pointer-events", "none");
+      .attr("x", (l) => l.x).attr("y", (l) => l.ly).text((l) => l.t)
+      .attr("fill", (l) => PAL[l.c]).attr("font-family", "Inter, sans-serif").attr("font-weight", 700)
+      .attr("font-size", 13.5 / k).attr("paint-order", "stroke").attr("stroke", "#0c0b0a").attr("stroke-width", 4 / k)
+      .style("cursor", "pointer")
+      .on("click", (e, l) => { e.stopPropagation(); pickComm(l.c); });
 
     info.innerHTML = `<b>${dec}s</b><br>${fmt(D.giant)} people in the largest group · repeat ties ${(D.repeat_share * 100).toFixed(1)}%`;
     names.innerHTML = D.nodes.map((n) => `<option value="${n.n.replace(/"/g, "&quot;")}">`).join("");
@@ -83,6 +90,7 @@
     // keep the selected person across decades if they are in this one
     const again = selName ? D.nodes.find((n) => n.n === selName) : null;
     sel = again ? again.i : null;
+    if (comm !== null) showCard();
     if (selName && !again) info.innerHTML += `<br><span style="color:#d9a94a">${selName} is not in this decade's largest group</span>`;
     update();
   }
@@ -96,9 +104,37 @@
       b.className = comm === c.id ? "on" : "";
       b.onmouseenter = () => { hoverComm = c.id; update(); };
       b.onmouseleave = () => { hoverComm = null; update(); };
-      b.onclick = () => { comm = comm === c.id ? null : c.id; sel = null; selName = null; search.value = ""; buildLegend(); update(); };
+      b.onclick = () => pickComm(c.id);
       legend.appendChild(b);
     });
+  }
+
+  function pickComm(id) {
+    comm = comm === id ? null : id; sel = null; selName = null; search.value = "";
+    buildLegend(); update(); showCard();
+  }
+
+  // stats for the selected community: how closed is it?
+  function showCard() {
+    if (comm === null) { card.style.display = "none"; return; }
+    const c = D.communities[comm], mem = D.nodes.filter((n) => n.c === comm), ids = new Set(mem.map((n) => n.i));
+    let inside = 0, out = 0, rep = 0;
+    D.edges.forEach(([a, b, w]) => {
+      const ia = ids.has(a), ib = ids.has(b);
+      if (ia && ib) { inside++; if (w > 1) rep++; } else if (ia || ib) out++;
+    });
+    const films = new Set(mem.flatMap((n) => n.f));
+    const top = mem.slice().sort((a, b) => b.f.length - a.f.length || b.d - a.d).slice(0, 6);
+    card.innerHTML = `<button class="x" aria-label="Close">×</button>
+      <div class="k">COMMUNITY</div><h4 style="color:${PAL[comm]}">${c.label}'s circle</h4>
+      <div class="cs"><div><b>${mem.length}</b>people</div><div><b>${films.size}</b>films</div>
+      <div><b>${Math.round((100 * inside) / (inside + out))}%</b>ties inside</div><div><b>${(100 * rep / Math.max(1, inside)).toFixed(1)}%</b>repeat ties</div></div>
+      <div class="k" style="margin-top:8px">MOST ACTIVE</div>
+      <ul>${top.map((n) => `<li data-i="${n.i}">${n.n} <span>${n.f.length} films</span></li>`).join("")}</ul>
+      <div class="note">Decade average: ${(D.repeat_share * 100).toFixed(1)}% repeat ties.</div>`;
+    card.style.display = "block";
+    card.querySelector(".x").onclick = () => pickComm(comm);
+    card.querySelectorAll("li").forEach((li) => (li.onclick = () => { const i = +li.dataset.i; comm = null; buildLegend(); card.style.display = "none"; setSel(i); }));
   }
 
   function update() {
@@ -151,7 +187,7 @@
   search.addEventListener("change", () => {
     const n = D.nodes.find((m) => m.n.toLowerCase() === search.value.trim().toLowerCase());
     if (!n) return;
-    comm = null; buildLegend(); setSel(n.i);
+    comm = null; buildLegend(); card.style.display = "none"; setSel(n.i);
     const W = stage.clientWidth, H = stage.clientHeight, s = 3;
     svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity.translate(W / 2 - s * n.px, H / 2 - s * n.py).scale(s));
   });
@@ -166,7 +202,7 @@
       const b = document.createElement("button");
       b.textContent = d + "s";
       b.onclick = () => {
-        dec = d; comm = null;
+        dec = d; comm = null; card.style.display = "none";
         decBar.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
         svg.call(zoom.transform, d3.zoomIdentity);
         draw();
