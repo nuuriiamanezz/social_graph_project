@@ -97,16 +97,18 @@
 
   function buildLegend() {
     legend.innerHTML = "";
-    D.communities.forEach((c) => {
-      if (!c.label) return;
+    const row = (id, color, html) => {
       const b = document.createElement("button");
-      b.innerHTML = `<i style="background:${PAL[c.id]}"></i>${c.label}'s circle · ${c.size}`;
-      b.className = comm === c.id ? "on" : "";
-      b.onmouseenter = () => { hoverComm = c.id; update(); };
+      b.innerHTML = `<i style="background:${color}"></i><span>${html}</span>`;
+      b.className = comm === id ? "on" : "";
+      b.onmouseenter = () => { hoverComm = id; update(); };
       b.onmouseleave = () => { hoverComm = null; update(); };
-      b.onclick = () => pickComm(c.id);
+      b.onclick = () => pickComm(id);
       legend.appendChild(b);
-    });
+    };
+    D.communities.forEach((c) => { if (c.label) row(c.id, PAL[c.id], `${c.label}'s circle <em>${c.size}</em>`); });
+    const sm = D.small;
+    row(-1, OTHER, `Smaller communities <em>${sm.people}</em><small>${sm.groups} more groups, typically ${sm.median_size} people each. Too many to colour, so they share grey and sit in the middle, between the circles they connect to.</small>`);
   }
 
   function pickComm(id) {
@@ -116,7 +118,7 @@
 
   // stats for the selected community: how closed is it?
   function showCard() {
-    if (comm === null) { card.style.display = "none"; return; }
+    if (comm === null || comm < 0) { card.style.display = "none"; return; }
     const c = D.communities[comm], mem = D.nodes.filter((n) => n.c === comm), ids = new Set(mem.map((n) => n.i));
     let inside = 0, out = 0, rep = 0;
     D.edges.forEach(([a, b, w]) => {

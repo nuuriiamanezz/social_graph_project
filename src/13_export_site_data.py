@@ -45,8 +45,11 @@ for dec, d in fp.groupby("decade"):
         mem = [n for n in nodes if c.community[n] == k]
         top = max(mem, key=lambda n: (credits.get(n, 0), deg[n])) if mem else None
         comms.append({"id": k, "size": int(c.comm_size[mem[0]]) if mem else 0, "label": c.name[top] if top else ""})
+    small = c.loc[[n for n in nodes if c.community[n] >= NC]]  # grey on the site
     out["decades"][str(dec)] = {
         "people": G.number_of_nodes(), "giant": len(H), "repeat_share": round(float(close.repeat_edges[dec]), 4),
+        "small": {"people": len(small), "groups": int(small.community.nunique()),
+                  "median_size": int(small.drop_duplicates("community").comm_size.median())},
         "communities": comms,
         "films": [f"{t} ({y})" for t, y in zip(ft.title_imdb, ft.year)],
         "nodes": [{"n": c.name[n], "c": int(c.community[n]) if c.community[n] < NC else -1, "d": deg[n],

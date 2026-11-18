@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=4">
+<link rel="stylesheet" href="assets/css/style.css?v=5">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
 <body>
@@ -137,13 +137,26 @@
         <datalist id="ex-names"></datalist>
         <label><input type="checkbox" id="ex-repeat"> Only repeat ties</label>
       </div>
+      <div class="ex-body">
       <div class="ex-stage">
         <div class="ex-info"></div>
         <div class="ex-tip"></div>
         <noscript><img class="fallback" src="assets/img/network_maps.png" alt="1980s vs 2010s collaboration networks"></noscript>
       </div>
-      <div class="ex-legend"></div>
-      <div class="ex-help">Largest connected group of each decade, laid out so each big community has its own area (grey = smaller communities). Colour = Louvain community, named after its most-credited member; gold lines = pairs who made 2+ films together. Hover a person for their films, click to see their collaborators (the selection carries over when you switch decade). Click a community name or chip for how closed it is. Scroll to zoom, drag to pan.</div>
+      <aside class="ex-side">
+        <div class="k">COLOUR KEY</div>
+        <p class="lead">Each colour is a <b>community</b>: a group of people who mostly work with each other (Louvain). Named after its most-credited member.</p>
+        <div class="ex-legend"></div>
+        <div class="k" style="margin-top:14px">LINES &amp; DOTS</div>
+        <ul class="ex-key">
+          <li><i class="ln gold"></i>made 2+ films together (repeat tie)</li>
+          <li><i class="ln"></i>made one film together</li>
+          <li><i class="dt"></i><i class="dt big"></i>bigger dot = more collaborators</li>
+          <li><i class="dt ring"></i>selected person</li>
+        </ul>
+      </aside>
+      </div>
+      <div class="ex-help">Largest connected group of each decade, laid out so each big community has its own area. Hover a person for their films, click to see their collaborators (the selection carries over when you switch decade). Click a community in the map or the key for how closed it is. Scroll to zoom, drag to pan.</div>
     </div>
 
     <figure class="fig live"><div class="chart" data-chart="closure" data-fallback="assets/img/network_closure.png"><noscript><img src="assets/img/network_closure.png" alt="Act I figure"></noscript></div>
@@ -217,7 +230,7 @@
 </div></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script src="assets/js/explorer.js?v=4"></script>
-<script src="assets/js/charts.js?v=4"></script>
+<script src="assets/js/explorer.js?v=5"></script>
+<script src="assets/js/charts.js?v=5"></script>
 </body>
 </html>
