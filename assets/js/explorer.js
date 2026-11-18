@@ -12,14 +12,17 @@
   const PAL = ["#ff5a5f", "#4fd18b", "#5b8cff", "#ffa24c", "#c77dff", "#4dd9f0", "#ff6fd8", "#e8c46a"];
   const OTHER = "#4a443b";
   const info = stage.querySelector(".ex-info"), tip = stage.querySelector(".ex-tip");
-  const card = document.createElement("div"); card.className = "ex-card"; stage.appendChild(card);
+  // person / community card lives at the top of the side panel, above the colour key
+  const side = root.querySelector(".ex-side");
+  const card = document.createElement("div"); card.className = "ex-card";
+  (side || stage).insertBefore(card, (side || stage).firstChild);
   const search = document.getElementById("ex-search"), names = document.getElementById("ex-names");
   const repeatBox = document.getElementById("ex-repeat");
   const legend = root.querySelector(".ex-legend"), decBar = root.querySelector(".ex-dec");
 
   const svg = d3.select(stage).append("svg").attr("role", "img").attr("aria-label", "Collaboration network");
   const g = svg.append("g"), gE = g.append("g"), gN = g.append("g"), gL = g.append("g"), gS = g.append("g");
-  let data, D, dec = "2010", sel = null, selName = null, comm = null, hoverComm = null, adj = [], k = 1;
+  let data, D, dec = "2010", sel = null, selName = null, comm = null, hoverComm = null, adj = [], adjW = [], k = 1;
 
   const zoom = d3.zoom().scaleExtent([0.6, 14]).on("zoom", (e) => {
     k = e.transform.k;
@@ -44,8 +47,8 @@
     const s = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad - 30) / (y1 - y0));
     const ox = (W - s * (x1 - x0)) / 2 - s * x0, oy = (H - s * (y1 - y0)) / 2 - s * y0 + 12;
     D.nodes.forEach((n, i) => { n.i = i; n.px = ox + s * P[i][0]; n.py = oy + s * P[i][1]; n.rad = 2 + Math.sqrt(n.d) * 0.9; });
-    adj = D.nodes.map(() => new Set());
-    D.edges.forEach(([a, b]) => { adj[a].add(b); adj[b].add(a); });
+    adj = D.nodes.map(() => new Set()); adjW = D.nodes.map(() => []);
+    D.edges.forEach(([a, b, w]) => { adj[a].add(b); adj[b].add(a); adjW[a].push([b, w]); adjW[b].push([a, w]); });
 
     gE.selectAll("line").data(D.edges, (e) => e[0] + "-" + e[1]).join("line")
       .attr("x1", (e) => D.nodes[e[0]].px).attr("y1", (e) => D.nodes[e[0]].py)
@@ -91,6 +94,7 @@
     const again = selName ? D.nodes.find((n) => n.n === selName) : null;
     sel = again ? again.i : null;
     if (comm !== null) showCard();
+    if (sel !== null) showPerson(sel);
     if (selName && !again) info.innerHTML += `<br><span style="color:#d9a94a">${selName} is not in this decade's largest group</span>`;
     update();
   }
@@ -135,8 +139,9 @@
       <ul>${top.map((n) => `<li data-i="${n.i}">${n.n} <span>${n.f.length} films</span></li>`).join("")}</ul>
       <div class="note">Decade average: ${(D.repeat_share * 100).toFixed(1)}% repeat ties.</div>`;
     card.style.display = "block";
+    if (side) side.scrollTop = 0;
     card.querySelector(".x").onclick = () => pickComm(comm);
-    card.querySelectorAll("li").forEach((li) => (li.onclick = () => { const i = +li.dataset.i; comm = null; buildLegend(); card.style.display = "none"; setSel(i); }));
+    card.querySelectorAll("li").forEach((li) => (li.onclick = () => { const i = +li.dataset.i; comm = null; buildLegend(); setSel(i); }));
   }
 
   function update() {
@@ -166,8 +171,45 @@
   function setSel(i) {
     sel = i;
     selName = i === null ? null : D.nodes[i].n;
-    if (i === null) search.value = "";
+    if (i === null) { search.value = ""; if (comm === null) card.style.display = "none"; }
+    else showPerson(i);
     update();
+  }
+
+  // card for one person: films, repeat partners, career across decades
+  function showPerson(i) {
+    const n = D.nodes[i], esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const films = n.f.map((j) => [D.films[j], D.ratings ? D.ratings[j] : null]);
+    const mr = D.ratings ? d3.mean(films, (f) => f[1]) : null;
+    const reps = adjW[i].filter(([, w]) => w > 1).sort((a, b) => b[1] - a[1] || D.nodes[b[0]].d - D.nodes[a[0]].d);
+    const decs = Object.keys(data.decades);
+    const career = decs.map((d) => {
+      const m = data.decades[d].nodes.find((x) => x.n === n.n);
+      return { d, m, lab: m && m.c >= 0 ? data.decades[d].communities[m.c].label + "'s circle" : m ? "a smaller community" : "not in the largest group" };
+    });
+    const inN = career.filter((x) => x.m).length;
+    const cl = n.c >= 0 ? `${D.communities[n.c].label}'s circle` : "a smaller community";
+    card.innerHTML = `<button class="x" aria-label="Close">×</button>
+      <div class="k">${n.r === "d" ? "DIRECTOR" : "ACTOR"} · ${dec}s</div><h4>${esc(n.n)}</h4>
+      <div class="pc"><i style="background:${color(n)}"></i>${esc(cl)}</div>
+      <div class="cs"><div><b>${n.f.length}</b>films</div><div><b>${n.d}</b>collaborators</div>
+      <div><b>${reps.length}</b>worked with again</div><div><b>${mr == null ? "–" : mr.toFixed(1)}</b>avg IMDb rating</div></div>
+      <div class="k" style="margin-top:9px">FILMS THIS DECADE</div>
+      <ul class="fl">${films.map(([t, r]) => `<li>${esc(t)}${r == null ? "" : `<span>★ ${r.toFixed(1)}</span>`}</li>`).join("")}</ul>
+      <div class="k" style="margin-top:9px">WORKED WITH AGAIN</div>
+      ${reps.length ? `<ul class="rp">${reps.slice(0, 8).map(([j, w]) => `<li data-i="${j}"><i style="background:${color(D.nodes[j])}"></i>${esc(D.nodes[j].n)}<span>${w} films</span></li>`).join("")}</ul>`
+        : `<div class="note" style="margin-top:3px">Nobody this decade: every collaborator was a one-off.</div>`}
+      <div class="k" style="margin-top:9px">ACROSS DECADES</div>
+      <div class="cr">${career.map((x) => `<button data-d="${x.d}" class="${x.d === dec ? "on" : ""}" ${x.m ? "" : "disabled"} title="${x.d}s: ${esc(x.lab)}">
+        <i style="background:${x.m ? (x.m.c >= 0 ? PAL[x.m.c] : OTHER) : "transparent"}"></i>${x.d.slice(2)}s</button>`).join("")}</div>
+      <div class="note">In the largest group in ${inN} of ${decs.length} decades. Colour = their circle that decade; click to jump there.</div>`;
+    card.style.display = "block";
+    if (side) side.scrollTop = 0;
+    card.querySelector(".x").onclick = () => setSel(null);
+    card.querySelectorAll(".rp li").forEach((li) => (li.onclick = () => setSel(+li.dataset.i)));
+    card.querySelectorAll(".cr button:not([disabled])").forEach((b) => (b.onclick = () => {
+      if (b.dataset.d !== dec) decBar.querySelectorAll("button").forEach((x) => { if (x.textContent === b.dataset.d + "s") x.click(); });
+    }));
   }
 
   function showTip(e, n) {
@@ -189,7 +231,7 @@
   search.addEventListener("change", () => {
     const n = D.nodes.find((m) => m.n.toLowerCase() === search.value.trim().toLowerCase());
     if (!n) return;
-    comm = null; buildLegend(); card.style.display = "none"; setSel(n.i);
+    comm = null; buildLegend(); setSel(n.i);
     const W = stage.clientWidth, H = stage.clientHeight, s = 3;
     svg.transition().duration(700).call(zoom.transform, d3.zoomIdentity.translate(W / 2 - s * n.px, H / 2 - s * n.py).scale(s));
   });
@@ -204,7 +246,7 @@
       const b = document.createElement("button");
       b.textContent = d + "s";
       b.onclick = () => {
-        dec = d; comm = null; card.style.display = "none";
+        dec = d; comm = null; if (sel === null) card.style.display = "none";
         decBar.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
         svg.call(zoom.transform, d3.zoomIdentity);
         draw();

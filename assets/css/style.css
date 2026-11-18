@@ -221,3 +221,20 @@ figure.fig.live figcaption a{color:var(--gold-2)}
 .ex-key .dt.big{width:12px;height:12px;margin-left:-4px}
 .ex-key .dt.ring{width:10px;height:10px;background:#4a443b;border:2px solid #fff}
 @media (max-width:820px){.ex-body{grid-template-columns:1fr}.ex-side{border-left:0;border-top:1px solid var(--line);max-height:none}}
+
+/* person card */
+.ex-card{max-height:calc(100% - 24px);overflow:auto;width:256px}
+.ex-card .pc{display:flex;align-items:center;gap:7px;color:var(--cream);margin:-4px 0 9px;font-size:.8rem}
+.ex-card .pc i,.ex-card .rp i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.ex-card .fl li{cursor:default}
+.ex-card .rp li{justify-content:flex-start;gap:7px}
+.ex-card .rp li span{margin-left:auto}
+.ex-card .cr{display:flex;gap:4px;margin-top:5px}
+.ex-card .cr button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--ink-2);border:1px solid var(--line);
+  border-radius:4px;color:var(--cream);font:inherit;font-size:.7rem;padding:4px 0;cursor:pointer}
+.ex-card .cr button i{width:10px;height:10px;border-radius:50%;display:block;border:1px solid rgba(243,234,216,.25)}
+.ex-card .cr button.on{border-color:var(--gold);background:rgba(217,169,74,.15)}
+.ex-card .cr button[disabled]{opacity:.35;cursor:default}
+.ex-side .ex-card{position:static;width:auto;max-height:none;overflow:visible;margin:0 0 16px;border-color:var(--gold);background:var(--ink)}
+.ex-side .ex-card h4{padding-right:16px}
+.ex-card li span{white-space:nowrap;padding-left:8px}

@@ -2,7 +2,7 @@
 
 Per decade: largest connected component, same layout recipe as step 12,
 nodes: name n, community c (8 largest, else -1), degree d, x/y, role r (a/d),
-f = indices into that decade's film list;
+f = indices into that decade's film list (titles in films, IMDb ratings in ratings);
 edges with weight. Also prints the headline counts used on the site.
 Needs results/communities.tsv (step 8).  Run from project/, then step 15 for the layout the site uses:
   python3 src/13_export_site_data.py && node src/15_layout_network.mjs
@@ -11,7 +11,7 @@ import itertools, json, os
 import numpy as np, pandas as pd, networkx as nx
 
 films = pd.read_csv("data/processed/films.tsv", sep="\t")
-fp = pd.read_csv("data/processed/film_people.tsv", sep="\t").merge(films[["tconst", "decade", "title_imdb", "year"]],
+fp = pd.read_csv("data/processed/film_people.tsv", sep="\t").merge(films[["tconst", "decade", "title_imdb", "year", "rating"]],
                                                                     on="tconst")
 comm = pd.read_csv("results/communities.tsv", sep="\t")
 close = pd.read_csv("results/network_closure.tsv", sep="\t").set_index("decade")
@@ -52,6 +52,7 @@ for dec, d in fp.groupby("decade"):
                   "median_size": int(small.drop_duplicates("community").comm_size.median())},
         "communities": comms,
         "films": [f"{t} ({y})" for t, y in zip(ft.title_imdb, ft.year)],
+        "ratings": [round(float(r), 1) for r in ft.rating],
         "nodes": [{"n": c.name[n], "c": int(c.community[n]) if c.community[n] < NC else -1, "d": deg[n],
                    "x": round(float((pos[n][0] - lo[0]) / span), 3), "y": round(float((pos[n][1] - lo[1]) / span), 3),
                    "f": filmlist[n], "r": roles[n][0]}
