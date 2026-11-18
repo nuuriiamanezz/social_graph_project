@@ -35,6 +35,8 @@
   svg.call(zoom).on("click", (e) => { if (e.target === svg.node()) { setSel(null); if (comm !== null) pickComm(comm); } });
 
   const color = (n) => (n.c >= 0 ? PAL[n.c] : OTHER);
+  // communities are named by genre (step 13); older data falls back to the person's name
+  const cname = (c) => c.name || `${c.label}'s circle`;
   const fmt = d3.format(",");
 
   // Positions come precomputed from src/15_layout_network.mjs (community-aware force layout).
@@ -68,9 +70,10 @@
     // community labels at each community's centre, named after its most-credited member
     const lab = D.communities.filter((c) => c.label).map((c) => {
       const m = D.nodes.filter((n) => n.c === c.id);
-      return { t: c.label, x: d3.median(m, (n) => n.px), y: d3.median(m, (n) => n.py), c: c.id };
+      return { t: cname(c).replace(/ \(.*\)$/, ""), x: d3.median(m, (n) => n.px), y: d3.median(m, (n) => n.py), c: c.id };
     });
-    lab.forEach((l) => { l.w = l.t.length * 8; l.ly = l.y; l.x -= l.w / 2; });
+    const SW = stage.clientWidth;  // keep labels inside the frame
+    lab.forEach((l) => { l.w = l.t.length * 7.4; l.ly = l.y; l.x = Math.max(6, Math.min(SW - l.w - 6, l.x - l.w / 2)); });
     for (let it = 0; it < 60; it++) {  // push overlapping labels apart vertically
       let moved = false;
       lab.forEach((a) => lab.forEach((b) => {
@@ -110,7 +113,11 @@
       b.onclick = () => pickComm(id);
       legend.appendChild(b);
     };
-    D.communities.forEach((c) => { if (c.label) row(c.id, PAL[c.id], `${c.label}'s circle <em>${c.size}</em>`); });
+    D.communities.forEach((c) => {
+      if (!c.label) return;
+      const sub = [c.name ? `most films: ${c.label}` : "", c.franchise ? `${c.franchise} ×${c.franchise_n}` : ""].filter(Boolean).join(" · ");
+      row(c.id, PAL[c.id], `${cname(c)} <em>${c.size}</em>${sub ? `<small>${sub}</small>` : ""}`);
+    });
     const sm = D.small;
     row(-1, OTHER, `Smaller communities <em>${sm.people}</em><small>${sm.groups} more groups, typically ${sm.median_size} people each. Too many to colour, so they share grey and sit in the middle, between the circles they connect to.</small>`);
   }
@@ -132,7 +139,8 @@
     const films = new Set(mem.flatMap((n) => n.f));
     const top = mem.slice().sort((a, b) => b.f.length - a.f.length || b.d - a.d).slice(0, 6);
     card.innerHTML = `<button class="x" aria-label="Close">×</button>
-      <div class="k">COMMUNITY</div><h4 style="color:${PAL[comm]}">${c.label}'s circle</h4>
+      <div class="k">COMMUNITY</div><h4 style="color:${PAL[comm]}">${cname(c)}</h4>
+      ${c.genre ? `<div class="why">${c.genre} in ${Math.round(100 * c.gshare)}% of its ${c.nfilms} films (${c.glift}× the decade)${c.franchise ? ` · ${c.franchise}: ${c.franchise_n} films` : ""} · most films: ${c.label}</div>` : ""}
       <div class="cs"><div><b>${mem.length}</b>people</div><div><b>${films.size}</b>films</div>
       <div><b>${Math.round((100 * inside) / (inside + out))}%</b>ties inside</div><div><b>${(100 * rep / Math.max(1, inside)).toFixed(1)}%</b>repeat ties</div></div>
       <div class="k" style="margin-top:8px">MOST ACTIVE</div>
@@ -185,10 +193,10 @@
     const decs = Object.keys(data.decades);
     const career = decs.map((d) => {
       const m = data.decades[d].nodes.find((x) => x.n === n.n);
-      return { d, m, lab: m && m.c >= 0 ? data.decades[d].communities[m.c].label + "'s circle" : m ? "a smaller community" : "not in the largest group" };
+      return { d, m, lab: m && m.c >= 0 ? cname(data.decades[d].communities[m.c]) : m ? "a smaller community" : "not in the largest group" };
     });
     const inN = career.filter((x) => x.m).length;
-    const cl = n.c >= 0 ? `${D.communities[n.c].label}'s circle` : "a smaller community";
+    const cl = n.c >= 0 ? cname(D.communities[n.c]) : "a smaller community";
     card.innerHTML = `<button class="x" aria-label="Close">×</button>
       <div class="k">${n.r === "d" ? "DIRECTOR" : "ACTOR"} · ${dec}s</div><h4>${esc(n.n)}</h4>
       <div class="pc"><i style="background:${color(n)}"></i>${esc(cl)}</div>
@@ -214,7 +222,7 @@
 
   function showTip(e, n) {
     const films = n.f.map((j) => D.films[j]);
-    const c = n.c >= 0 ? `${D.communities[n.c].label}'s circle` : "a smaller community";
+    const c = n.c >= 0 ? cname(D.communities[n.c]) : "a smaller community";
     tip.innerHTML = `<h4>${n.n}</h4><div class="m">${n.r === "d" ? "Director" : "Actor"} · ${n.d} collaborators · ${c}</div>
       <ul>${films.slice(0, 6).map((f) => `<li>${f}</li>`).join("")}${films.length > 6 ? `<li>+${films.length - 6} more</li>` : ""}</ul>`;
     tip.style.opacity = 1;

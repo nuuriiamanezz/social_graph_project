@@ -238,3 +238,4 @@ figure.fig.live figcaption a{color:var(--gold-2)}
 .ex-side .ex-card{position:static;width:auto;max-height:none;overflow:visible;margin:0 0 16px;border-color:var(--gold);background:var(--ink)}
 .ex-side .ex-card h4{padding-right:16px}
 .ex-card li span{white-space:nowrap;padding-left:8px}
+.ex-card .why{font-size:.74rem;color:var(--muted);margin:-4px 0 9px;line-height:1.45}
